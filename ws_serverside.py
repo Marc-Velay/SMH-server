@@ -5,6 +5,9 @@ import tornado.ioloop
 import tornado.web
 import socket
 import pickle
+import json
+from pathlib import Path
+from os.path import isfile
 
 class WSHandler(tornado.websocket.WebSocketHandler):
     def open(self):
@@ -14,8 +17,17 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         print('message received:  %s' % message)
         #print('sending back message: %s' % message)
         #self.write_message(message)
-        with open('save.pkl', 'wb') as f:
-            pickle.dump(message, f)
+        data=json.loads(message.decode('utf-8'))
+    
+        title=data["label"]
+        n=0
+        mf=Path('data/'+str(title)+'_'+str(n))
+        while (isfile(mf)):
+            n=n+1
+            mf=Path('data/'+str(title)+'_'+str(n))
+
+        with open('data/'+str(title)+'_'+str(n), 'wb') as f:
+            pickle.dump(data, f)
             
     def on_close(self):
         print('connection closed')
