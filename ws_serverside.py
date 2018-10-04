@@ -7,6 +7,7 @@ import socket
 import json
 from pathlib import Path
 from os.path import isfile
+import os
 
 class WSHandler(tornado.websocket.WebSocketHandler):
     def open(self):
@@ -19,13 +20,18 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         data=json.loads(message.decode('utf-8'))
 
         title=data["label"]
-        n=0
-        mf=Path('data/'+str(title)+'_'+str(n))
+        '''n=0
+        mf=Path('data/'+str(n)+'_'+str(title)+'.json')
         while (isfile(mf)):
             n=n+1
-            mf=Path('data/'+str(title)+'_'+str(n))
+            mf=Path('data/'+str(n)+'_'+str(title)+'.json')
 
-        with open('data/'+str(title)+'_'+str(n), 'wb') as f:
+        fileList = os.listdir("data/")'''
+        fileList = os.listdir("data/")
+        fileList.sort()
+        num = [[int(s) for s in file if s.isdigit()] for file in [fileName for fileName in fileList if title in fileName]]
+
+        with open('data/'+str(title)+'_'+str(num)+'.json', 'wb') as f:
             json.dump(data, f)
 
     def on_close(self):
