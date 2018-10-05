@@ -14,10 +14,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         print('new connection')
 
     def on_message(self, message):
-        print('message received:  %s' % message)
-        #print('sending back message: %s' % message)
-        #self.write_message(message)
+        num = 0
         data=json.loads(message.decode('utf-8'))
+        #print(type(data))
 
         title=data["label"]
         '''n=0
@@ -27,11 +26,15 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             mf=Path('data/'+str(n)+'_'+str(title)+'.json')
 
         fileList = os.listdir("data/")'''
-        fileList = os.listdir("data/")
-        fileList.sort()
-        num = [[int(s) for s in file if s.isdigit()] for file in [fileName for fileName in fileList if title in fileName]]
+        #fileList = os.listdir("data/")
+        fileList = [f for f in os.listdir("data/") if os.path.isfile(os.path.join("data/", f))]
+        print(fileList)
+        if any(fileList):
+            fileList.sort()
+            num = [[int(s) for s in file if s.isdigit()] for file in [fileName for fileName in fileList if title in fileName]]
+            num = max([int(''.join(''.join( str(x) for x in numI ))) for numI in num])+1
 
-        with open('data/'+str(title)+'_'+str(max(nums)[0]+1)+'.json', 'wb') as f:
+        with open('data/'+str(title)+'_'+str(num)+'.json', 'w') as f:
             json.dump(data, f)
 
     def on_close(self):
