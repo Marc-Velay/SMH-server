@@ -31,7 +31,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         fileList.sort()
         num = [[int(s) for s in file if s.isdigit()] for file in [fileName for fileName in fileList if title in fileName]]
 
-        with open('data/'+str(title)+'_'+str(num)+'.json', 'wb') as f:
+        with open('data/'+str(title)+'_'+str(num+1)+'.json', 'wb') as f:
             json.dump(data, f)
 
     def on_close(self):
