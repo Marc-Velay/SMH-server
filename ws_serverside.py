@@ -28,7 +28,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         fileList = os.listdir("data/")'''
         #fileList = os.listdir("data/")
         fileList = [f for f in os.listdir("data/") if os.path.isfile(os.path.join("data/", f))]
-        print(fileList)
+        #print(fileList)
         if any(fileList):
             fileList.sort()
             num = [[int(s) for s in file if s.isdigit()] for file in [fileName for fileName in fileList if title in fileName]]
@@ -36,6 +36,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
         with open('data/'+str(title)+'_'+str(num)+'.json', 'w') as f:
             json.dump(data, f)
+            print("saved file to :", 'data/',str(title),'_',str(num),'.json')
 
     def on_close(self):
         print('connection closed')
