@@ -36,6 +36,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
         with open('data2/'+str(title)+'_'+str(num)+'.json', 'w') as f:
             json.dump(data, f)
+            print("saved file to :", 'data/',str(title),'_',str(num),'.json')
 
     def on_close(self):
         print('connection closed')
