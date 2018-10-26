@@ -2,15 +2,16 @@ import os
 import json
 from pprint import pprint
 import numpy as np
+import time
 
 TargetLabel = "RotG"
 MVT_NAMES = ["Fire", "Kick", "No", "RotD", "RotG", "ZoomIn", "ZoomOut"]
 
-def get_label_movements(label):
+def get_movements():
     movements = []
-    fileList = os.listdir("data/"+label+"/")
+    fileList = os.listdir("data2/")
     for file in fileList:
-        with open("data/"+label+"/"+file, 'r') as f:
+        with open("data2/"+file, 'r') as f:
             movements.append(json.load(f))
     return movements
 
@@ -24,7 +25,8 @@ def parse_vector(string_vect):
 
 def get_hand_vector(hand):
     vector = []
-    #pprint(hand)
+    pprint(hand)
+    input()
     #Palm data
     vector.append(parse_vector(hand["PalmNormal"]))
     vector.append(parse_vector(hand["WristPosition"]))
@@ -62,17 +64,16 @@ def get_hand_vector(hand):
 if __name__ == "__main__":
 
     mvts = []
-    for movement in MVT_NAMES:
-        movement_seqs = get_label_movements(movement)
-        print("nb sequences in ", movement, " : ", len(movement_seqs))
-        for mov in movement_seqs:
-            hand_seq = []
-            for frame in mov["frames"]:
-                #if len(frame["hands"]) > 1 :
-                #    print("look mom! 2 hands")
-                for hand in frame["hands"]:
-                    hand_seq.append(get_hand_vector(hand))
-            #print(np.array(hand_seq).shape)
-            mvts.append(hand_seq)
-            #print(np.array(hand_seq).shape)
+    t0 = time.time()
+    movement_seqs = get_movements()
+    print('loaded in: %.3f seconds' %(time.time()-t0))
+    print("nb sequences: ", len(movement_seqs))
+    for mov in movement_seqs:
+        hand_seq = []
+        for frame in mov["frames"]:
+            for hand in frame["hands"]:
+                hand_seq.append(get_hand_vector(hand))
+        #print(np.array(hand_seq).shape)
+        mvts.append(hand_seq)
+        #print(np.array(hand_seq).shape)
     print(np.array(mvts).shape)
