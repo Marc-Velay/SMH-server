@@ -7,12 +7,14 @@ class DataSet(object):
 	def __init__(self, dirname, nbdata, L2normalize=False, batchSize=16):
 		self.nbdata = nbdata
 		# taille des images 48*48 pixels en niveau de gris
-		self.dim = 768
+		self.dim = 549
 		self.data = None
 		self.label = None
 		self.batchSize = batchSize
 		self.curPos = 0
 		self.MVT_NAMES = ["Fire", "Kick", "RotD", "RotG", "ZoomIn", "ZoomOut"]
+		self.BONES = ["TYPE_METACARPAL", "TYPE_PROXIMAL", "TYPE_INTERMEDIATE", "TYPE_DISTAL"]
+		self.FINGERS = ["TYPE_THUMB", "TYPE_INDEX", "TYPE_MIDDLE", "TYPE_RING", "TYPE_PINKY"]
 
 		movements = []
 		self.label = []
@@ -32,7 +34,7 @@ class DataSet(object):
 				for hand in frame["hands"]:
 					frame_seq.append(self.get_hand_vector(hand))
 				if(len(frame_seq) < 2):
-					frame_seq.append(np.zeros((384,)))
+					frame_seq.append(np.zeros((self.dim,)))
 				hand_seq.append(frame_seq)
 			self.data.append(hand_seq)
 
@@ -70,7 +72,22 @@ class DataSet(object):
 	    # Separe le string sous format "(a, b, c)" en liste [a, b, c]
 	    # on retire le premier et dernier char, les parenthèses
 	    # on split le string sur les virgules, et on parse en float
-	    return [float(coord) for coord in string_vect[1:-1].split(', ')]
+		if '(' in string_vect:
+		    return [float(coord) for coord in string_vect[1:-1].split(', ')]
+		else:
+			return [float(coord) for coord in string_vect.split(', ')]
+
+	def int2onehot(self, list_len, index):
+		one_hot = np.zeros((1, list_len))
+		one_hot[np.arange(1), index] = 1
+
+		return list(one_hot[0])
+
+	def flatten(self, x):
+	    if isinstance(x, collections.Iterable):
+	        return [a for i in x for a in flatten(i)]
+	    else:
+	        return [x]
 
 	def get_hand_vector(self, hand):
 		vector = []
@@ -80,6 +97,12 @@ class DataSet(object):
 		vector.append(self.parse_vector(hand["PalmPosition"]))
 		vector.append(self.parse_vector(hand["PalmVelocity"]))
 		vector.append(self.parse_vector(hand["Direction"]))
+		vector.append(self.parse_vector(hand["GrabAngle"]))
+		vector.append(self.parse_vector(hand["GrabStrength"]))
+		vector.append(self.parse_vector(hand["PalmWidth"]))
+		vector.append(self.parse_vector(hand["PinchDistance"]))
+		vector.append(self.parse_vector(hand["PinchStrength"]))
+		vector.append(self.parse_vector(hand["StabilizedPalmPosition"]))
 
 		#Arm data
 		vector.append(self.parse_vector(hand["Arm"]["ElbowPosition"]))
@@ -88,6 +111,8 @@ class DataSet(object):
 		vector.append(self.parse_vector(hand["Arm"]["Center"]))
 		vector.append(self.parse_vector(hand["Arm"]["Direction"]))
 		vector.append(self.parse_vector(hand["Arm"]["Rotation"]))
+		vector.append(self.parse_vector(hand["Arm"]["Length"]))
+		vector.append(self.parse_vector(hand["Arm"]["Width"]))
 
 		#Finger data w/ 5 bones
 		for finger in hand["fingers"]:
@@ -97,11 +122,15 @@ class DataSet(object):
 				vector.append(self.parse_vector(bone["Center"]))
 				vector.append(self.parse_vector(bone["Direction"]))
 				vector.append(self.parse_vector(bone["Rotation"]))
-				#TODO add Bone_Type as vector from string
+				vector.append(self.parse_vector(bone["Length"]))
+				vector.append(self.parse_vector(bone["Width"]))
+				vector.append(self.int2onehot(len(self.BONES), self.BONES.index(bone["BoneType"])))
 
 			vector.append(self.parse_vector(finger["Direction"]))
 			vector.append(self.parse_vector(finger["TipPosition"]))
-			#TODO add Finger_Type as vector from string
+			vector.append(self.parse_vector(finger["Length"]))
+			vector.append(self.parse_vector(finger["Width"]))
+			vector.append(self.int2onehot(len(self.FINGERS), self.FINGERS.index(finger["FingerType"])))
 		#print(np.array(vector).shape)
 		flat_list = [item for sublist in vector for item in sublist]
 
