@@ -22,7 +22,7 @@ class DataSet(object):
 		for file in fileList:
 			with open(dirname+file, 'r') as f:
 				movements.append(json.load(f))
-				self.label.append(file.split('_')[0])
+				self.label.append(self.int2onehot(len(self.MVT_NAMES), self.MVT_NAMES.index(file.split('_')[0])))
 
 		print("nb sequences: ", len(movements))
 
@@ -35,7 +35,8 @@ class DataSet(object):
 					frame_seq.append(self.get_hand_vector(hand))
 				if(len(frame_seq) < 2):
 					frame_seq.append(np.zeros((self.dim,)))
-				hand_seq.append(frame_seq)
+				#hand_seq.append(frame_seq)
+				hand_seq.append([item for sublist in frame_seq for item in sublist])
 			self.data.append(hand_seq)
 
 
@@ -43,7 +44,7 @@ class DataSet(object):
 
 		self.data = np.array(self.data)
 		self.label = np.array(self.label)
-		tmpdata = np.empty([1, 60 , 2, self.dim], dtype=np.float32)
+		tmpdata = np.empty([1, 60 , 2*self.dim], dtype=np.float32)
 		tmplabel = np.empty([1, 1])#, dtype=np.float32)
 		arr = np.arange(nbdata)
 		np.random.shuffle(arr)
@@ -58,6 +59,7 @@ class DataSet(object):
 
 		if L2normalize:
 			self.data /= np.sqrt(np.expand_dims(np.square(self.data).sum(axis=1), 1))
+
 
 
 	def NextTrainingBatch(self):
