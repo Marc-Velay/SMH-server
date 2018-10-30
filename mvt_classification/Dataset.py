@@ -5,7 +5,8 @@ from pprint import pprint
 import pickle
 
 class DataSet(object):
-	def __init__(self, dirname, nbdata, L2normalize=False, batchSize=16, load=False):
+
+	def __init__(self, dirname, nbdata, L2normalize=False, batchSize=16, load=False, onehot=True):
 		self.nbdata = nbdata
 		# taille des images 48*48 pixels en niveau de gris
 		self.dim = 549
@@ -29,7 +30,10 @@ class DataSet(object):
 			for file in fileList:
 				with open(dirname+file, 'r') as f:
 					movements.append(json.load(f))
-					self.label.append([self.int2onehot(len(self.MVT_NAMES), self.MVT_NAMES.index(file.split('_')[0]))]*60)
+					if onehot is True:
+						self.label.append([self.int2onehot(len(self.MVT_NAMES), self.MVT_NAMES.index(file.split('_')[0]))]*60)
+					else:
+						self.label.append(self.MVT_NAMES.index(file.split('_')[0]))
 
 			print("nb sequences: ", len(movements))
 
