@@ -3,7 +3,7 @@ import numpy as np
 
 from keras.models import Model
 from keras.layers import Input
-from keras.layers import Dense, LSTM
+from keras.layers import Dense, LSTM, TimeDistributed
 from keras.layers import Dropout
 from keras.callbacks import ModelCheckpoint
 from keras.optimizers import Nadam
@@ -51,16 +51,20 @@ def dense(tensor, outDim, name):
 	return tensor
 
 def create_LSTM(xshape, yshape, batchSize):
-    x = Input(shape=(xshape[1], xshape[2]))
 
-    cell1 = LSTM(2000, return_sequences=True)(x)
-    cell2 = LSTM(500, return_sequences=True)(cell1)
-    d1 = Dense(50, activation='sigmoid')(cell2) #attention layer
+	print(yshape)
+	x = Input(shape=(xshape[1], xshape[2]))
 
-    intents = Dense(yshape[2], activation='sigmoid', name='mvt_class')(d1)
+	cell1 = LSTM(2000, return_sequences=True,batch_input_shape=(batchSize, xshape[1], xshape[2]))(x)
+	cell2 = LSTM(500)(cell1)
+	d1 = Dense(50, activation='sigmoid')(cell2) #attention layer
+	#6 is the number of classes
+	intents  = Dense(6, activation='sigmoid', name='mvt_class')(d1)
 
-    model = Model(inputs=x, outputs=intents)
-    opt = Nadam(lr=0.00001 )
-    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+	#intents = Dense(6, activation='sigmoid', name='mvt_class')(d1)
 
-    return model,opt
+	model = Model(inputs=x, outputs=intents)
+	opt = Nadam(lr=0.00001 )
+	model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+
+	return model,opt

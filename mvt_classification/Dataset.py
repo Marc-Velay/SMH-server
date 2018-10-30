@@ -18,7 +18,7 @@ class DataSet(object):
 		self.BONES = ["TYPE_METACARPAL", "TYPE_PROXIMAL", "TYPE_INTERMEDIATE", "TYPE_DISTAL"]
 		self.FINGERS = ["TYPE_THUMB", "TYPE_INDEX", "TYPE_MIDDLE", "TYPE_RING", "TYPE_PINKY"]
 
-		if os.path.isfile(dirname+"data.pkl") and load is True:
+		if os.path.isfile(dirname+"data.pkl") and os.path.isfile(dirname+"label.pkl") and load is True:
 			#load the files
 			print("Loaded data from files!")
 			self.data = pickle.load(open(dirname+"data.pkl", "rb"))
@@ -31,12 +31,13 @@ class DataSet(object):
 				with open(dirname+file, 'r') as f:
 					movements.append(json.load(f))
 					if onehot is True:
-						self.label.append([self.int2onehot(len(self.MVT_NAMES), self.MVT_NAMES.index(file.split('_')[0]))]*60)
+						self.label.append([self.int2onehot(len(self.MVT_NAMES), self.MVT_NAMES.index(file.split('_')[0]))])#*60)
 					else:
 						self.label.append(self.MVT_NAMES.index(file.split('_')[0]))
 
-			print("nb sequences: ", len(movements))
+			print("nb sequences loaded: ", len(movements))
 
+			print("Vectorising sequences!")
 			self.data = []
 			for mov in movements:
 				hand_seq = []
@@ -55,7 +56,7 @@ class DataSet(object):
 
 			self.data = np.array(self.data)
 			self.label = np.array(self.label)
-			tmpdata = np.empty([1, 60 , 2*self.dim], dtype=np.float32)
+			"""tmpdata = np.empty([1, 60 , 2*self.dim], dtype=np.float32)
 			tmplabel = np.empty([1, 1])#, dtype=np.float32)
 			arr = np.arange(nbdata)
 			np.random.shuffle(arr)
@@ -65,7 +66,14 @@ class DataSet(object):
 				self.data[arr[i],:] = self.data[arr[i+1],:]
 				self.label[arr[i]] = self.label[arr[i+1]]
 			self.data[arr[nbdata-1],:] = tmpdata
-			self.label[arr[nbdata-1]] = tmplabel
+			self.label[arr[nbdata-1]] = tmplabel"""
+			p = np.random.permutation(len(self.data))
+			self.data=self.data[p]
+			self.label=self.label[p]
+
+			if onehot is True:
+				# A single one hot vector for each sequence
+				self.label = np.reshape(self.label, (len(self.label), len(self.MVT_NAMES)))
 
 			pickle.dump(self.data, open(dirname+"data.pkl", 'wb'))
 			pickle.dump(self.label, open(dirname+"label.pkl", 'wb'))

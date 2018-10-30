@@ -21,8 +21,6 @@ batchSizetest = 1
 
 X_train, X_test, y_train, y_test = model_selection.train_test_split(train.data, train.label, train_size=0.75, test_size=0.25)
 
-print(y_train.shape)
-
 print('define lstm model')
 #model, opt = get_lstm(X_train.shape, y_train.shape, y2_train.shape, BATCH_SIZE)
 model, opt = create_LSTM(X_train.shape, y_train.shape, batchSize)
@@ -33,18 +31,12 @@ checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only
 callbacks_list = [checkpoint]
 
 #history = model.fit(X_train[:batchSize*math.floor(X_train.shape[0]/batchSize)], y_train[:batchSize*math.floor(X_train.shape[0]/batchSize)],
-#                    epochs=2, batch_size=batchSize, callbacks=callbacks_list, validation_split=0.2)
+#                    epochs=20, batch_size=batchSize, callbacks=callbacks_list, validation_split=0.2)
 model.load_weights(filepath)
 
 predictions = model.predict(X_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)], batch_size=batchSizetest)
-print(predictions.shape)
-print(np.array(predictions).shape)
-
 print("confusion matrix: ")
-conf = confusion_matrix([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]], [np.argmax(y) for y in predictions],
-						labels=set([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]]))
-print(len(conf), len(conf[0]))
-print([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]][:10])
+conf = confusion_matrix([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]], [np.argmax(y) for y in predictions])
 print(conf)
 accu_score = accuracy_score([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]], [np.argmax(y) for y in predictions])
 print("LSTM acc: ", accu_score)
