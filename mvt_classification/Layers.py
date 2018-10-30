@@ -1,6 +1,12 @@
 import tensorflow as tf
 import numpy as np
 
+from keras.models import Model
+from keras.layers import Input
+from keras.layers import Dense, LSTM
+from keras.layers import Dropout
+from keras.callbacks import ModelCheckpoint
+from keras.optimizers import Nadam
 
 def variable_summaries(var, name):
 	with tf.name_scope('summaries'):
@@ -43,3 +49,18 @@ def dense(tensor, outDim, name):
 		tensor = tf.matmul(tensor, W)+B
 		tensor = tf.nn.tanh(tensor, name='activationLayer1')
 	return tensor
+
+def create_LSTM(xshape, yshape, batchSize):
+    x = Input(shape=(xshape[1], xshape[2]))
+
+    cell1 = LSTM(2000, return_sequences=True)(x)
+    cell2 = LSTM(500, return_sequences=True)(cell1)
+    d1 = Dense(50, activation='sigmoid')(cell2) #attention layer
+
+    intents = Dense(yshape[2], activation='sigmoid', name='mvt_class')(d1)
+
+    model = Model(inputs=x, outputs=intents)
+    opt = Nadam(lr=0.00001 )
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+
+    return model,opt
