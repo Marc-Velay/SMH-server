@@ -13,7 +13,8 @@ def get_dict(database):
 	return {x:xs,y_desired:ys}
 
 experiment_name = 'Classify_mvts'
-train = ds.DataSet('../data2/',720)
+load_data = True
+train = ds.DataSet('../data2/',720, load=load_data)
 
 batchSize = 10
 batchSizetest = 1
@@ -40,8 +41,10 @@ print(predictions.shape)
 print(np.array(predictions).shape)
 
 print("confusion matrix: ")
-conf = confusion_matrix([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]], [np.argmax(y) for y in predictions])
-print(set([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]]))
+conf = confusion_matrix([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]], [np.argmax(y) for y in predictions],
+						labels=set([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]]))
+print(len(conf), len(conf[0]))
+print([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]][:10])
 print(conf)
 accu_score = accuracy_score([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]], [np.argmax(y) for y in predictions])
 print("LSTM acc: ", accu_score)
