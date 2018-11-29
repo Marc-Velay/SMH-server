@@ -2,6 +2,7 @@
 import numpy as np
 import Dataset as ds
 from Layers import *
+import keras_callbacks
 from sklearn import model_selection
 from sklearn.metrics import accuracy_score, confusion_matrix
 import math
@@ -13,9 +14,11 @@ def get_dict(database):
 	return {x:xs,y_desired:ys}
 
 experiment_name = 'Classify_mvts'
-load_data = True
-train = ds.DataSet('../data2/',720, load=load_data)
 
+load_data = True
+train = ds.DataSet('../data2/',720, load=load_data, onehot=True)
+
+TRAIN = True
 batchSize = 10
 batchSizetest = 1
 
@@ -23,15 +26,18 @@ X_train, X_test, y_train, y_test = model_selection.train_test_split(train.data, 
 
 print('define lstm model')
 #model, opt = get_lstm(X_train.shape, y_train.shape, y2_train.shape, BATCH_SIZE)
-model, opt = create_LSTM(X_train.shape, y_train.shape, batchSize)
-
+#model, opt = create_LSTM(X_train.shape, y_train.shape, batchSize)
+model, opt = create_LSTM2(X_train.shape, y_train.shape, batchSize)
+print(X_train.shape, y_train.shape)
 # define the checkpoint
-filepath="weights/weights-lstm.hdf5"
-checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
-callbacks_list = [checkpoint]
+filepath="weights/weights-lstm2.hdf5"
 
-#history = model.fit(X_train[:batchSize*math.floor(X_train.shape[0]/batchSize)], y_train[:batchSize*math.floor(X_train.shape[0]/batchSize)],
-#                    epochs=20, batch_size=batchSize, callbacks=callbacks_list, validation_split=0.2)
+if TRAIN:
+	histories = keras_callbacks.Histories()
+	checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
+	callbacks_list = [checkpoint, histories]
+	history = model.fit(X_train[:batchSize*math.floor(X_train.shape[0]/batchSize)], y_train[:batchSize*math.floor(X_train.shape[0]/batchSize)],
+	                    epochs=20, batch_size=batchSize, callbacks=callbacks_list, validation_split=0.2)
 model.load_weights(filepath)
 
 predictions = model.predict(X_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)], batch_size=batchSizetest)
@@ -40,13 +46,3 @@ conf = confusion_matrix([np.argmax(y) for y in y_test[:batchSizetest*math.floor(
 print(conf)
 accu_score = accuracy_score([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]], [np.argmax(y) for y in predictions])
 print("LSTM acc: ", accu_score)
-
-"""
-plt.figure(1)
-plt.plot(history.history['loss'])
-plt.title('model acc')
-plt.ylabel('acc')
-plt.xlabel('epoch')
-plt.legend(['train', 'test'], loc='best')
-plt.show()
-"""

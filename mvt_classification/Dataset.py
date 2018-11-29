@@ -4,6 +4,11 @@ import json
 from pprint import pprint
 import pickle
 
+
+MVT_NAMES = ["Fire", "Kick", "RotD", "RotG", "ZoomIn", "ZoomOut"]
+BONES = ["TYPE_METACARPAL", "TYPE_PROXIMAL", "TYPE_INTERMEDIATE", "TYPE_DISTAL"]
+FINGERS = ["TYPE_THUMB", "TYPE_INDEX", "TYPE_MIDDLE", "TYPE_RING", "TYPE_PINKY"]
+
 class DataSet(object):
 
 	def __init__(self, dirname, nbdata, L2normalize=False, batchSize=16, load=False, onehot=True):
@@ -14,9 +19,6 @@ class DataSet(object):
 		self.label = None
 		self.batchSize = batchSize
 		self.curPos = 0
-		self.MVT_NAMES = ["Fire", "Kick", "RotD", "RotG", "ZoomIn", "ZoomOut"]
-		self.BONES = ["TYPE_METACARPAL", "TYPE_PROXIMAL", "TYPE_INTERMEDIATE", "TYPE_DISTAL"]
-		self.FINGERS = ["TYPE_THUMB", "TYPE_INDEX", "TYPE_MIDDLE", "TYPE_RING", "TYPE_PINKY"]
 
 		if os.path.isfile(dirname+"data.pkl") and os.path.isfile(dirname+"label.pkl") and load is True:
 			#load the files
@@ -31,9 +33,9 @@ class DataSet(object):
 				with open(dirname+file, 'r') as f:
 					movements.append(json.load(f))
 					if onehot is True:
-						self.label.append([self.int2onehot(len(self.MVT_NAMES), self.MVT_NAMES.index(file.split('_')[0]))])#*60)
+						self.label.append([self.int2onehot(len(MVT_NAMES), MVT_NAMES.index(file.split('_')[0]))])#*60)
 					else:
-						self.label.append(self.MVT_NAMES.index(file.split('_')[0]))
+						self.label.append(MVT_NAMES.index(file.split('_')[0]))
 
 			print("nb sequences loaded: ", len(movements))
 
@@ -56,24 +58,13 @@ class DataSet(object):
 
 			self.data = np.array(self.data)
 			self.label = np.array(self.label)
-			"""tmpdata = np.empty([1, 60 , 2*self.dim], dtype=np.float32)
-			tmplabel = np.empty([1, 1])#, dtype=np.float32)
-			arr = np.arange(nbdata)
-			np.random.shuffle(arr)
-			tmpdata = self.data[arr[0],:]
-			tmplabel = self.label[arr[0]]
-			for i in range(nbdata-1):
-				self.data[arr[i],:] = self.data[arr[i+1],:]
-				self.label[arr[i]] = self.label[arr[i+1]]
-			self.data[arr[nbdata-1],:] = tmpdata
-			self.label[arr[nbdata-1]] = tmplabel"""
 			p = np.random.permutation(len(self.data))
 			self.data=self.data[p]
 			self.label=self.label[p]
 
 			if onehot is True:
 				# A single one hot vector for each sequence
-				self.label = np.reshape(self.label, (len(self.label), len(self.MVT_NAMES)))
+				self.label = np.reshape(self.label, (len(self.label), 1, len(MVT_NAMES)))
 
 			pickle.dump(self.data, open(dirname+"data.pkl", 'wb'))
 			pickle.dump(self.label, open(dirname+"label.pkl", 'wb'))
@@ -88,70 +79,70 @@ class DataSet(object):
 		self.curPos += self.batchSize
 		return xs,ys
 
-	def parse_vector(self, string_vect):
-			# Separe le string sous format "(a, b, c)" en liste [a, b, c]
-			# on retire le premier et dernier char, les parenthèses
-			# on split le string sur les virgules, et on parse en float
-		if '(' in string_vect:
-				return [float(coord) for coord in string_vect[1:-1].split(', ')]
+def parse_vector(string_vect):
+		# Separe le string sous format "(a, b, c)" en liste [a, b, c]
+		# on retire le premier et dernier char, les parenthèses
+		# on split le string sur les virgules, et on parse en float
+	if '(' in string_vect:
+			return [float(coord) for coord in string_vect[1:-1].split(', ')]
+	else:
+		return [float(coord) for coord in string_vect.split(', ')]
+
+def int2onehot(list_len, index):
+	one_hot = np.zeros((1, list_len))
+	one_hot[np.arange(1), index] = 1
+
+	return list(one_hot[0])
+
+def flatten(x):
+		if isinstance(x, collections.Iterable):
+				return [a for i in x for a in flatten(i)]
 		else:
-			return [float(coord) for coord in string_vect.split(', ')]
+				return [x]
 
-	def int2onehot(self, list_len, index):
-		one_hot = np.zeros((1, list_len))
-		one_hot[np.arange(1), index] = 1
+def get_hand_vector(hand):
+	vector = []
+	#Palm data
+	vector.append(parse_vector(hand["PalmNormal"]))
+	vector.append(parse_vector(hand["WristPosition"]))
+	vector.append(parse_vector(hand["PalmPosition"]))
+	vector.append(parse_vector(hand["PalmVelocity"]))
+	vector.append(parse_vector(hand["Direction"]))
+	vector.append(parse_vector(hand["GrabAngle"]))
+	vector.append(parse_vector(hand["GrabStrength"]))
+	vector.append(parse_vector(hand["PalmWidth"]))
+	vector.append(parse_vector(hand["PinchDistance"]))
+	vector.append(parse_vector(hand["PinchStrength"]))
+	vector.append(parse_vector(hand["StabilizedPalmPosition"]))
 
-		return list(one_hot[0])
+	#Arm data
+	vector.append(parse_vector(hand["Arm"]["ElbowPosition"]))
+	vector.append(parse_vector(hand["Arm"]["PrevJoint"]))
+	vector.append(parse_vector(hand["Arm"]["NextJoint"]))
+	vector.append(parse_vector(hand["Arm"]["Center"]))
+	vector.append(parse_vector(hand["Arm"]["Direction"]))
+	vector.append(parse_vector(hand["Arm"]["Rotation"]))
+	vector.append(parse_vector(hand["Arm"]["Length"]))
+	vector.append(parse_vector(hand["Arm"]["Width"]))
 
-	def flatten(self, x):
-			if isinstance(x, collections.Iterable):
-					return [a for i in x for a in flatten(i)]
-			else:
-					return [x]
+	#Finger data w/ 5 bones
+	for finger in hand["fingers"]:
+		for bone in finger["Bones"]:
+			vector.append(parse_vector(bone["PrevJoint"]))
+			vector.append(parse_vector(bone["NextJoint"]))
+			vector.append(parse_vector(bone["Center"]))
+			vector.append(parse_vector(bone["Direction"]))
+			vector.append(parse_vector(bone["Rotation"]))
+			vector.append(parse_vector(bone["Length"]))
+			vector.append(parse_vector(bone["Width"]))
+			vector.append(int2onehot(len(BONES), BONES.index(bone["BoneType"])))
 
-	def get_hand_vector(self, hand):
-		vector = []
-		#Palm data
-		vector.append(self.parse_vector(hand["PalmNormal"]))
-		vector.append(self.parse_vector(hand["WristPosition"]))
-		vector.append(self.parse_vector(hand["PalmPosition"]))
-		vector.append(self.parse_vector(hand["PalmVelocity"]))
-		vector.append(self.parse_vector(hand["Direction"]))
-		vector.append(self.parse_vector(hand["GrabAngle"]))
-		vector.append(self.parse_vector(hand["GrabStrength"]))
-		vector.append(self.parse_vector(hand["PalmWidth"]))
-		vector.append(self.parse_vector(hand["PinchDistance"]))
-		vector.append(self.parse_vector(hand["PinchStrength"]))
-		vector.append(self.parse_vector(hand["StabilizedPalmPosition"]))
+		vector.append(parse_vector(finger["Direction"]))
+		vector.append(parse_vector(finger["TipPosition"]))
+		vector.append(parse_vector(finger["Length"]))
+		vector.append(parse_vector(finger["Width"]))
+		vector.append(int2onehot(len(FINGERS), FINGERS.index(finger["FingerType"])))
+	#print(np.array(vector).shape)
+	flat_list = [item for sublist in vector for item in sublist]
 
-		#Arm data
-		vector.append(self.parse_vector(hand["Arm"]["ElbowPosition"]))
-		vector.append(self.parse_vector(hand["Arm"]["PrevJoint"]))
-		vector.append(self.parse_vector(hand["Arm"]["NextJoint"]))
-		vector.append(self.parse_vector(hand["Arm"]["Center"]))
-		vector.append(self.parse_vector(hand["Arm"]["Direction"]))
-		vector.append(self.parse_vector(hand["Arm"]["Rotation"]))
-		vector.append(self.parse_vector(hand["Arm"]["Length"]))
-		vector.append(self.parse_vector(hand["Arm"]["Width"]))
-
-		#Finger data w/ 5 bones
-		for finger in hand["fingers"]:
-			for bone in finger["Bones"]:
-				vector.append(self.parse_vector(bone["PrevJoint"]))
-				vector.append(self.parse_vector(bone["NextJoint"]))
-				vector.append(self.parse_vector(bone["Center"]))
-				vector.append(self.parse_vector(bone["Direction"]))
-				vector.append(self.parse_vector(bone["Rotation"]))
-				vector.append(self.parse_vector(bone["Length"]))
-				vector.append(self.parse_vector(bone["Width"]))
-				vector.append(self.int2onehot(len(self.BONES), self.BONES.index(bone["BoneType"])))
-
-			vector.append(self.parse_vector(finger["Direction"]))
-			vector.append(self.parse_vector(finger["TipPosition"]))
-			vector.append(self.parse_vector(finger["Length"]))
-			vector.append(self.parse_vector(finger["Width"]))
-			vector.append(self.int2onehot(len(self.FINGERS), self.FINGERS.index(finger["FingerType"])))
-		#print(np.array(vector).shape)
-		flat_list = [item for sublist in vector for item in sublist]
-
-		return flat_list
+	return flat_list

@@ -8,6 +8,12 @@ import json
 from pathlib import Path
 from os.path import isfile
 import os
+import time
+from ml_process import classify
+import collections
+import numpy as np
+
+
 
 class WSHandler(tornado.websocket.WebSocketHandler):
     def open(self):
@@ -19,14 +25,6 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         #print(type(data))
 
         title=data["label"]
-        '''n=0
-        mf=Path('data/'+str(n)+'_'+str(title)+'.json')
-        while (isfile(mf)):
-            n=n+1
-            mf=Path('data/'+str(n)+'_'+str(title)+'.json')
-
-        fileList = os.listdir("data/")'''
-        #fileList = os.listdir("data/")
         fileList = [f for f in os.listdir("data2/") if os.path.isfile(os.path.join("data2/", f))]
         print(fileList)
         if any(fileList):
@@ -44,12 +42,42 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def check_origin(self, origin):
         return True
 
+
+class WSPred(tornado.websocket.WebSocketHandler):
+    def open(self):
+        print('new connection')
+        self.time_last = time.time()
+        self.frame_shape = (1, classify.vector_length)
+        self.buffer = collections.deque(maxlen=60)
+        for i in range(60):
+            self.buffer.append(np.zeros(self.frame_shape))
+        self.counter = 0
+
+
+    def on_message(self, message):
+        self.counter += 1
+        print(self.counter)
+        data=json.loads(message.decode('utf-8'))
+        time_n = time.time()
+        print("time between frames:", time_n-self.time_last)
+        self.time_last = time_n
+        print(len(data["hands"]))
+        print(classify.classify(self, data))
+
+    def on_close(self):
+        print('connection closed')
+
+    def check_origin(self, origin):
+        return True
+
 application = tornado.web.Application([
     (r'/ws', WSHandler),
+    (r'/pred', WSPred)
 ])
 
 
 if __name__ == "__main__":
+    #global time_last
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(8888)
     myIP = socket.gethostbyname('0.0.0.0')
