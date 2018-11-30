@@ -73,4 +73,7 @@ for i in range(0,len(y_test),60):
 
 time_n = time.time()
 acc_seq(y_pred_test,Y_test)
+#print(rf.feature_importances_)
+for feat in rf.feature_importances_:
+    print(feat)
 print("time between frames:", (time.time()-time_n)/240)

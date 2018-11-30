@@ -9,9 +9,9 @@ X_shape = (1, 60, vector_length)
 y_shape = (1, 6)
 batchSize = 1
 
-model,dump  = Layers.create_LSTM(X_shape, y_shape, batchSize)
+model,dump  = Layers.create_LSTM3(X_shape, y_shape, batchSize)
 
-filepath="mvt_classification/weights/weights-lstm.hdf5"
+filepath="mvt_classification/weights/weights-lstm3.hdf5"
 model.load_weights(filepath)
 #print(model.get_layer(index=1))
 
@@ -41,4 +41,5 @@ def classify(self, frame):
     #predictions = model.predict(hand_seq)
     #print(predictions)
 
+    #return "nop"
     return Dataset.MVT_NAMES[np.argmax(predictions[0])]

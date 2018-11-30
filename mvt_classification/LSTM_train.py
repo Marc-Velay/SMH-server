@@ -27,17 +27,17 @@ X_train, X_test, y_train, y_test = model_selection.train_test_split(train.data, 
 print('define lstm model')
 #model, opt = get_lstm(X_train.shape, y_train.shape, y2_train.shape, BATCH_SIZE)
 #model, opt = create_LSTM(X_train.shape, y_train.shape, batchSize)
-model, opt = create_LSTM2(X_train.shape, y_train.shape, batchSize)
+model, opt = create_LSTM3(X_train.shape, y_train.shape, batchSize)
 print(X_train.shape, y_train.shape)
 # define the checkpoint
-filepath="weights/weights-lstm2.hdf5"
+filepath="weights/weights-lstm3.hdf5"
 
 if TRAIN:
 	histories = keras_callbacks.Histories()
-	checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
+	checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 	callbacks_list = [checkpoint, histories]
 	history = model.fit(X_train[:batchSize*math.floor(X_train.shape[0]/batchSize)], y_train[:batchSize*math.floor(X_train.shape[0]/batchSize)],
-	                    epochs=20, batch_size=batchSize, callbacks=callbacks_list, validation_split=0.2)
+	                    epochs=500, batch_size=batchSize, callbacks=callbacks_list, validation_split=0.2)
 model.load_weights(filepath)
 
 predictions = model.predict(X_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)], batch_size=batchSizetest)
