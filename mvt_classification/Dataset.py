@@ -1,11 +1,11 @@
 import numpy as np
-import os
+import os, io
 import json
 from pprint import pprint
 import pickle
 
 
-MVT_NAMES = ["Fire", "Kick", "RotD", "RotG", "ZoomIn", "ZoomOut"]
+MVT_NAMES = ["Fire", "Kick", "RotD", "RotG", "ZoomIn", "ZoomOut", "NOP"]
 BONES = ["TYPE_METACARPAL", "TYPE_PROXIMAL", "TYPE_INTERMEDIATE", "TYPE_DISTAL"]
 FINGERS = ["TYPE_THUMB", "TYPE_INDEX", "TYPE_MIDDLE", "TYPE_RING", "TYPE_PINKY"]
 
@@ -30,10 +30,10 @@ class DataSet(object):
 			self.label = []
 			fileList = os.listdir(dirname)
 			for file in fileList:
-				with open(dirname+file, 'r') as f:
+				with io.open(dirname+file, 'r') as f:
 					movements.append(json.load(f))
 					if onehot is True:
-						self.label.append([self.int2onehot(len(MVT_NAMES), MVT_NAMES.index(file.split('_')[0]))])#*60)
+						self.label.append([int2onehot(len(MVT_NAMES), MVT_NAMES.index(file.split('_')[0]))])#*60)
 					else:
 						self.label.append(MVT_NAMES.index(file.split('_')[0]))
 
@@ -46,28 +46,27 @@ class DataSet(object):
 				for frame in mov["frames"]:
 					frame_seq = []
 					for hand in frame["hands"]:
-						frame_seq.append(self.get_hand_vector(hand))
-					if(len(frame_seq) < 2):
+						frame_seq.append(get_hand_vector(hand))
+					while(len(frame_seq) < 2):
 						frame_seq.append(np.zeros((self.dim,)))
 					#hand_seq.append(frame_seq)
 					hand_seq.append([item for sublist in frame_seq for item in sublist])
-				self.data.append(hand_seq)
+				self.data.append(hand_seq[::2])
 
-
-			print(np.array(self.data).shape)
 
 			self.data = np.array(self.data)
 			self.label = np.array(self.label)
+			print(self.label.shape)
 			p = np.random.permutation(len(self.data))
 			self.data=self.data[p]
 			self.label=self.label[p]
 
 			if onehot is True:
 				# A single one hot vector for each sequence
-				self.label = np.reshape(self.label, (len(self.label), 1, len(MVT_NAMES)))
+				self.label = np.reshape(self.label, (len(self.label), len(MVT_NAMES)))
 
-			pickle.dump(self.data, open(dirname+"data.pkl", 'wb'))
-			pickle.dump(self.label, open(dirname+"label.pkl", 'wb'))
+			#pickle.dump(self.data, open(dirname+"data.pkl", 'wb'))
+			#pickle.dump(self.label, open(dirname+"label.pkl", 'wb'))
 
 
 

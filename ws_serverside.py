@@ -26,7 +26,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
         title=data["label"]
         fileList = [f for f in os.listdir("data2/") if os.path.isfile(os.path.join("data2/", f))]
-        print(fileList)
+        #print(fileList)
         if any(fileList):
             fileList.sort()
             num = [[int(s) for s in file if s.isdigit()] for file in [fileName for fileName in fileList if title in fileName]]

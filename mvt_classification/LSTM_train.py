@@ -15,7 +15,7 @@ def get_dict(database):
 
 experiment_name = 'Classify_mvts'
 
-load_data = True
+load_data = False
 train = ds.DataSet('../data2/',720, load=load_data, onehot=True)
 
 TRAIN = True
@@ -30,8 +30,8 @@ print('define lstm model')
 model, opt = create_LSTM3(X_train.shape, y_train.shape, batchSize)
 print(X_train.shape, y_train.shape)
 # define the checkpoint
-filepath="weights/weights-lstm3.hdf5"
-
+filepath="weights/weights-lstm4.hdf5"
+print("targetssss", y_train[:2])
 if TRAIN:
 	histories = keras_callbacks.Histories()
 	checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
