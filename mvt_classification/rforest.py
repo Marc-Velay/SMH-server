@@ -15,6 +15,7 @@ np.random.seed(42)
 def maj_vote(res):
     #res=res
     vote=[]
+    print("res?",np.array(res).shape)
     for i in res:
         idx = list(np.argmax(i, axis=1))
         vote.append(max(idx,key=idx.count))
@@ -24,8 +25,8 @@ def acc_seq(y_pred,Y):
     res=[]
     for i in range(0,len(Y)):
         temp=[]
-        for j in range(0,60):
-            temp.append(y_pred[i*60+j])
+        for j in range(0,30):
+            temp.append(y_pred[i*30+j])
         res.append(temp)
     vote_test=maj_vote(res)
     print(accuracy_score(vote_test,np.argmax(Y, axis=1)))
@@ -49,10 +50,10 @@ for i in X_test:
     for j in i:
         x_test.append(j)
 for i in Y_train:
-    for j in range(0,60):
+    for j in range(0,30):
         y_train.append(i)
 for i in Y_test:
-    for j in range(0,60):
+    for j in range(0,30):
         y_test.append(i)
 
 print(np.array(y_train).shape)
@@ -68,7 +69,7 @@ y_pred_test=rf.predict(x_test)
 #print(confusion_matrix(y_train,y_pred))
 
 Y_test=[]
-for i in range(0,len(y_test),60):
+for i in range(0,len(y_test),30):
     Y_test.append(y_test[i])
 
 time_n = time.time()

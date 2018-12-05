@@ -5,13 +5,15 @@ import itertools
 import pickle
 
 vector_length = 1098
-X_shape = (1, 60, vector_length)
-y_shape = (1, 6)
+nb_frames = 30
+nb_classes = 7
+X_shape = (1, nb_frames, vector_length)
+y_shape = (1, nb_classes)
 batchSize = 1
 
 model,dump  = Layers.create_LSTM3(X_shape, y_shape, batchSize)
 
-filepath="mvt_classification/weights/weights-lstm3.hdf5"
+filepath="mvt_classification/weights/weights-lstm4.hdf5"
 model.load_weights(filepath)
 #print(model.get_layer(index=1))
 
@@ -30,12 +32,12 @@ def classify(self, frame):
     hand_seq.append([item for sublist in frame_seq for item in sublist])
     self.buffer.append(hand_seq)
 
-    temp = np.reshape(list(itertools.islice(self.buffer, 0, 60)), X_shape)
-    print("buffe shape", temp.shape)
+    temp = np.reshape(list(itertools.islice(self.buffer, 0, self.nb_frames)), X_shape)
+    #print("buffe shape", temp.shape)
 
     #For LSTM
     predictions = model.predict(temp, batch_size=batchSize)
-    print(predictions)
+    #print(predictions)
 
     #For random forest
     #predictions = model.predict(hand_seq)
