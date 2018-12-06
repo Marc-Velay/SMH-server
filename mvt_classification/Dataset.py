@@ -65,8 +65,8 @@ class DataSet(object):
 				# A single one hot vector for each sequence
 				self.label = np.reshape(self.label, (len(self.label), len(MVT_NAMES)))
 
-			#pickle.dump(self.data, open(dirname+"data.pkl", 'wb'))
-			#pickle.dump(self.label, open(dirname+"label.pkl", 'wb'))
+			pickle.dump(self.data, open(dirname+"data.pkl", 'wb'))
+			pickle.dump(self.label, open(dirname+"label.pkl", 'wb'))
 
 
 

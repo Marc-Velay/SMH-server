@@ -34,6 +34,7 @@ def acc_seq(y_pred,Y):
 	print(accuracy_score(vote_test,Y))#,np.argmax(Y, axis=1)))
 
 
+
 experiment_name = 'Classify_mvts'
 train = ds.DataSet('../data2/',720, onehot=False, load=True)
 
@@ -52,6 +53,7 @@ for i in X_test:
     for j in i:
         x_test.append(j)
 for i in Y_train:
+<<<<<<< HEAD
     for j in range(0,nb_frame):
         y_train.append(i)
 for i in Y_test:
@@ -71,6 +73,7 @@ y_pred_test=rf.predict(x_test)
 #print(confusion_matrix(y_train,y_pred))
 
 Y_test=[]
+
 for i in range(0,len(y_test),nb_frame):
     Y_test.append(y_test[i])
 
