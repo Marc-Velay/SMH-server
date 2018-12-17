@@ -51,7 +51,7 @@ class DataSet(object):
 						frame_seq.append(np.zeros((self.dim,)))
 					#hand_seq.append(frame_seq)
 					hand_seq.append([item for sublist in frame_seq for item in sublist])
-				self.data.append(hand_seq[::2])
+				self.data.append(hand_seq[::1])
 
 
 			self.data = np.array(self.data)
