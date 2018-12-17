@@ -26,14 +26,14 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         #print(type(data))
 
         title=data["label"]
-        fileList = [f for f in os.listdir("data2/") if os.path.isfile(os.path.join("data2/", f))]
+        fileList = [f for f in os.listdir("data3/") if os.path.isfile(os.path.join("data3/", f))]
         #print(fileList)
         if any(fileList):
             fileList.sort()
             num = [[int(s) for s in file if s.isdigit()] for file in [fileName for fileName in fileList if title in fileName]]
             num = max([int(''.join(''.join( str(x) for x in numI ))) for numI in num])+1
 
-        with open('data2/'+str(title)+'_'+str(num)+'.json', 'w') as f:
+        with open('data3/'+str(title)+'_'+str(num)+'.json', 'w') as f:
             json.dump(data, f)
             print("saved file to :", 'data/',str(title),'_',str(num),'.json')
 
