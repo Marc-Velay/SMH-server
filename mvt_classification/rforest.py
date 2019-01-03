@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import Dataset as ds
 from sklearn import model_selection
@@ -36,7 +34,7 @@ def acc_seq(y_pred,Y):
 
 
 experiment_name = 'Classify_mvts'
-train = ds.DataSet('../data2/',720, onehot=False, load=True)
+train = ds.DataSet('../data2/',841, onehot=False, load=True)
 
 print(train.label.shape)
 print(train.data.shape)
@@ -53,7 +51,6 @@ for i in X_test:
     for j in i:
         x_test.append(j)
 for i in Y_train:
-<<<<<<< HEAD
     for j in range(0,nb_frame):
         y_train.append(i)
 for i in Y_test:
@@ -61,9 +58,9 @@ for i in Y_test:
         y_test.append(i)
 
 print(np.array(y_train).shape)
-rf=RandomForestClassifier(n_estimators=50,n_jobs=-1,criterion="gini")
+rf=RandomForestClassifier(n_estimators=75,n_jobs=-1)#,criterion="gini")
 rf.fit(x_train,y_train)
-with open("rf_model.pkl", "wb") as f:
+with open("weights/rf_model.pkl", "wb") as f:
     pickle.dump(rf, f)
 print("trained model!")
 #print(rf.score(x_train,y_train))
@@ -86,9 +83,9 @@ def get_indices(rf,n):
 	fi=np.asarray(rf.feature_importances_)
 	li=fi.argsort()[::-1][:n]
 	print(li)
-	with open('n__features_indices.pkl', 'wb') as f:
+	with open('weights/n__features_indices.pkl', 'wb') as f:
 		pickle.dump(li,f)
-		
+
 get_indices(rf,100)
 #plt.plot(fi)
 #plt.show()

@@ -13,18 +13,17 @@ class DataSet(object):
 
 	def __init__(self, dirname, nbdata, L2normalize=False, batchSize=16, load=False, onehot=True):
 		self.nbdata = nbdata
-		# taille des images 48*48 pixels en niveau de gris
-		self.dim = 549
+		self.dim = None #549
 		self.data = None
 		self.label = None
 		self.batchSize = batchSize
 		self.curPos = 0
 
-		if os.path.isfile(dirname+"data.pkl") and os.path.isfile(dirname+"label.pkl") and load is True:
+		if os.path.isfile("weights/data.pkl") and os.path.isfile("weights/label.pkl") and load is True:
 			#load the files
 			print("Loaded data from files!")
-			self.data = pickle.load(open(dirname+"data.pkl", "rb"))
-			self.label = pickle.load(open(dirname+"label.pkl", "rb"))
+			self.data = pickle.load(open("weights/data.pkl", "rb"))
+			self.label = pickle.load(open("weights/label.pkl", "rb"))
 		else:
 			movements = []
 			self.label = []
@@ -47,6 +46,9 @@ class DataSet(object):
 					frame_seq = []
 					for hand in frame["hands"]:
 						frame_seq.append(get_hand_vector(hand))
+						if self.dim is None and len(frame_seq):
+							self.dim = len(frame_seq[0])
+							print("vector dim",self.dim)
 					while(len(frame_seq) < 2):
 						frame_seq.append(np.zeros((self.dim,)))
 					#hand_seq.append(frame_seq)
@@ -56,7 +58,7 @@ class DataSet(object):
 
 			self.data = np.array(self.data)
 			self.label = np.array(self.label)
-			print(self.label.shape)
+			print("label shape",self.label.shape)
 			p = np.random.permutation(len(self.data))
 			self.data=self.data[p]
 			self.label=self.label[p]
@@ -65,8 +67,8 @@ class DataSet(object):
 				# A single one hot vector for each sequence
 				self.label = np.reshape(self.label, (len(self.label), len(MVT_NAMES)))
 
-			pickle.dump(self.data, open(dirname+"data.pkl", 'wb'))
-			pickle.dump(self.label, open(dirname+"label.pkl", 'wb'))
+			pickle.dump(self.data, open("weights/data.pkl", 'wb'))
+			pickle.dump(self.label, open("weights/label.pkl", 'wb'))
 
 
 
@@ -107,6 +109,7 @@ def get_hand_vector(hand):
 	vector.append(parse_vector(hand["PalmPosition"]))
 	vector.append(parse_vector(hand["PalmVelocity"]))
 	vector.append(parse_vector(hand["Direction"]))
+	vector.append(parse_vector(hand["Rotation"]))
 	vector.append(parse_vector(hand["GrabAngle"]))
 	vector.append(parse_vector(hand["GrabStrength"]))
 	vector.append(parse_vector(hand["PalmWidth"]))
@@ -135,13 +138,14 @@ def get_hand_vector(hand):
 			vector.append(parse_vector(bone["Length"]))
 			vector.append(parse_vector(bone["Width"]))
 			vector.append(int2onehot(len(BONES), BONES.index(bone["BoneType"])))
+			None
 
 		vector.append(parse_vector(finger["Direction"]))
 		vector.append(parse_vector(finger["TipPosition"]))
 		vector.append(parse_vector(finger["Length"]))
 		vector.append(parse_vector(finger["Width"]))
 		vector.append(int2onehot(len(FINGERS), FINGERS.index(finger["FingerType"])))
-	#print(np.array(vector).shape)
+	
 	flat_list = [item for sublist in vector for item in sublist]
 
 	return flat_list
