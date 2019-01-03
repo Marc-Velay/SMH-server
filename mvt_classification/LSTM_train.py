@@ -16,12 +16,11 @@ def get_dict(database):
 
 experiment_name = 'Classify_mvts'
 
-load_data = False
-train = ds.DataSet('../data3/',841, load=load_data, onehot=True)
-
+load_data = True
 TRAIN = True
-batchSize = 5
+batchSize = 20
 batchSizetest = 1
+train = ds.DataSet('../data3/',841, load=load_data, onehot=True, batchSize=batchSize)
 
 print("x shape", train.data.shape)
 X_train, X_test, y_train, y_test = model_selection.train_test_split(train.data, train.label, train_size=0.80, test_size=0.20)
@@ -37,7 +36,9 @@ if TRAIN:
 	checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='auto')
 	callbacks_list = [checkpoint, histories]
 	history = model.fit(X_train[:batchSize*math.floor(X_train.shape[0]/batchSize)], y_train[:batchSize*math.floor(X_train.shape[0]/batchSize)],
-	                    epochs=50, batch_size=batchSize, callbacks=callbacks_list, validation_split=0.2)
+	                    epochs=15, batch_size=batchSize, callbacks=callbacks_list, validation_split=0.2)
+
+#*needs to be shifted out of if
 model.load_weights(filepath)
 
 predictions = model.predict(X_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)], batch_size=batchSizetest)
@@ -46,3 +47,4 @@ conf = confusion_matrix([np.argmax(y) for y in y_test[:batchSizetest*math.floor(
 print(conf)
 accu_score = accuracy_score([np.argmax(y) for y in y_test[:batchSizetest*math.floor(X_test.shape[0]/batchSizetest)]], [np.argmax(y) for y in predictions])
 print("LSTM acc: ", accu_score)
+#*
