@@ -4,7 +4,7 @@ import numpy as np
 import itertools
 import pickle
 
-vector_length = 1098
+vector_length = 518
 nb_frames = 30
 nb_classes = 7
 X_shape = (1, nb_frames, vector_length)

@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 import math
 import matplotlib.pyplot as plt
 
-np.random.seed(42)
+#np.random.seed(42)
 
 def get_dict(database):
 	xs,ys = database.NextTrainingBatch()
@@ -17,7 +17,7 @@ def get_dict(database):
 experiment_name = 'Classify_mvts'
 
 load_data = True
-TRAIN = True
+TRAIN = False
 batchSize = 20
 batchSizetest = 1
 train = ds.DataSet('../data3/',841, load=load_data, onehot=True, batchSize=batchSize)

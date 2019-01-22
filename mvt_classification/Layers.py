@@ -35,7 +35,7 @@ def create_LSTM3(xshape, yshape, batchSize):
 	x = Input(shape=(xshape[1], xshape[2]))
 
 	cell1 = LSTM(700, return_sequences=True,batch_input_shape=(batchSize, xshape[1], xshape[2]))(x)
-	cell2 = LSTM(250, return_sequences=True)(cell1)
+	cell2 = LSTM(400, return_sequences=True)(cell1)
 	cell3 = LSTM(100, return_sequences=True)(cell2)
 	cell4 = LSTM(75, return_sequences=True)(cell3)
 	cell5 = LSTM(50)(cell4)
