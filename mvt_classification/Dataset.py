@@ -18,7 +18,7 @@ class DataSet(object):
 		self.label = None
 		self.batchSize = batchSize
 		self.curPos = 0
-		self.keepFrames = 30
+		self.keepFrames = 60
 
 		if os.path.isfile("weights/data.pkl") and os.path.isfile("weights/label.pkl") and load is True:
 			#load the files
@@ -54,6 +54,7 @@ class DataSet(object):
 						frame_seq.append(np.zeros((self.dim,)))
 					#hand_seq.append(frame_seq)
 					hand_seq.append([item for sublist in frame_seq for item in sublist])
+				#hand_seq = hand_seq[::int(60/self.keepFrames)]
 				self.data.append(hand_seq[::1])
 
 
@@ -116,52 +117,52 @@ def get_hand_vector(hand):
 	vector = []
 	#Palm data
 	vector.append(parse_vector(hand["PalmNormal"]))
-	#vector.append(parse_vector(hand["WristPosition"]))
+	#vector.append(parse_vector(hand["WristPosition"]))#
 	vector.append(parse_vector(hand["PalmPosition"]))
 	vector.append(parse_vector(hand["PalmVelocity"]))
 	vector.append(parse_vector(hand["Direction"]))
 	vector.append(parse_vector(hand["Rotation"]))
-	#vector.append(parse_vector(hand["GrabAngle"]))
-	#vector.append(parse_vector(hand["GrabStrength"]))
-	#vector.append(parse_vector(hand["PalmWidth"]))
-	#vector.append(parse_vector(hand["PinchDistance"]))
-	#vector.append(parse_vector(hand["PinchStrength"]))
-	#vector.append(parse_vector(hand["StabilizedPalmPosition"]))
+	#vector.append(parse_vector(hand["GrabAngle"]))#
+	#vector.append(parse_vector(hand["GrabStrength"]))#
+	#vector.append(parse_vector(hand["PalmWidth"]))#
+	#vector.append(parse_vector(hand["PinchDistance"]))#
+	#vector.append(parse_vector(hand["PinchStrength"]))#
+	#vector.append(parse_vector(hand["StabilizedPalmPosition"]))#
 
 	#Arm data
-	#vector.append(parse_vector(hand["Arm"]["ElbowPosition"]))
+	#vector.append(parse_vector(hand["Arm"]["ElbowPosition"]))#
 	vector.append(parse_vector(hand["Arm"]["PrevJoint"]))
 	vector.append(parse_vector(hand["Arm"]["NextJoint"]))
-	#vector.append(parse_vector(hand["Arm"]["Center"]))
+	#vector.append(parse_vector(hand["Arm"]["Center"]))#
 	vector.append(parse_vector(hand["Arm"]["Direction"]))
 	vector.append(parse_vector(hand["Arm"]["Rotation"]))
-	#vector.append(parse_vector(hand["Arm"]["Length"]))
-	#vector.append(parse_vector(hand["Arm"]["Width"]))
+	#vector.append(parse_vector(hand["Arm"]["Length"]))#
+	#vector.append(parse_vector(hand["Arm"]["Width"]))#
 
 	#Finger data w/ 5 bones
 	for finger in hand["fingers"]:
 		for bone in finger["Bones"]:
-			#vector.append(parse_vector(bone["PrevJoint"]))
-			#vector.append(parse_vector(bone["NextJoint"]))
+			#vector.append(parse_vector(bone["PrevJoint"]))#
+			#vector.append(parse_vector(bone["NextJoint"]))#
 			vector.append(parse_vector(bone["Center"]))
 			vector.append(parse_vector(bone["Direction"]))
 			vector.append(parse_vector(bone["Rotation"]))
-			#vector.append(parse_vector(bone["Length"]))
-			#vector.append(parse_vector(bone["Width"]))
+			#vector.append(parse_vector(bone["Length"]))#
+			#vector.append(parse_vector(bone["Width"]))#
 			#vector.append(int2onehot(len(BONES), BONES.index(bone["BoneType"])))
 			#None
 
 		vector.append(parse_vector(finger["Direction"]))
 		vector.append(parse_vector(finger["TipPosition"]))
-		#vector.append(parse_vector(finger["Length"]))
-		#vector.append(parse_vector(finger["Width"]))
+		#vector.append(parse_vector(finger["Length"]))#
+		#vector.append(parse_vector(finger["Width"]))#
 		#vector.append(int2onehot(len(FINGERS), FINGERS.index(finger["FingerType"])))
 
 	flat_list = [item for sublist in vector for item in sublist]
 
 	return flat_list
 
-def augment_data(dataset, nb_frames_TK=30, keep_from_original=20):
+def augment_data(dataset, nb_frames_TK=60, keep_from_original=40):
 	new_data = []
 	new_label = []
 	data_shape = dataset.data.shape
@@ -173,7 +174,7 @@ def augment_data(dataset, nb_frames_TK=30, keep_from_original=20):
 		new_seq_long[:nb_frames_TK-keep_from_original] = new_seqs[index-1][-(nb_frames_TK-keep_from_original):]
 		new_seq_long[nb_frames_TK-keep_from_original:2*nb_frames_TK-keep_from_original] = new_seqs[index]
 		new_seq_long[2*nb_frames_TK-keep_from_original:] = new_seqs[index+1][:nb_frames_TK-keep_from_original]
-		for shift in range(0,20,2):
+		for shift in range(0,keep_from_original,3):
 			new_data.append(new_seq_long[shift:shift+nb_frames_TK])
 			new_label.append(dataset.label[index])
 	new_data = np.array(new_data)

@@ -47,3 +47,24 @@ def create_LSTM3(xshape, yshape, batchSize):
 	model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 	print(model.summary())
 	return model,opt
+
+
+def create_LSTM4(xshape, yshape, batchSize):
+
+	x = Input(shape=(xshape[1], xshape[2]))
+
+	cell1 = LSTM(300, return_sequences=True,batch_input_shape=(batchSize, xshape[1], xshape[2]))(x)
+	cell2 = LSTM(250, return_sequences=True)(cell1)
+	cell3 = LSTM(200, return_sequences=True)(cell2)
+	cell4 = LSTM(150, return_sequences=True)(cell3)
+	cell5 = LSTM(150, return_sequences=True)(cell4)
+	cell6 = LSTM(100, return_sequences=True)(cell5)
+	cellFinal = LSTM(50)(cell6)
+	d1 = Dense(yshape[-1], activation='sigmoid')(cellFinal) #attention layer
+	intents  = Dense(yshape[-1], activation='sigmoid', name='mvt_class')(d1)
+
+	model = Model(inputs=x, outputs=intents)
+	opt = Nadam(lr=0.0005)
+	model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+	print(model.summary())
+	return model,opt

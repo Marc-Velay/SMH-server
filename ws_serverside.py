@@ -76,12 +76,12 @@ class WSPred(tornado.websocket.WebSocketHandler):
             if c.most_common()[0][1] > self.res_buffer.maxlen/4:
                 self.last = c.most_common()[0][0]
                 self.send_data = True"""
-        if Intent is not "NOP" and Intent is not self.last:
+        if Intent is not "NOP":# and Intent is not self.last:
             self.write_message(Intent)
             #self.send_data = False
-            self.last = Intent
             #sys.stdout.write("\033[K")
             print("sent", Intent)
+        self.last = Intent
 
     def on_close(self):
         print('connection closed')
